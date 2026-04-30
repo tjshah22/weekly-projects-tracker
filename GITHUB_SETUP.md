@@ -69,6 +69,59 @@ Replace `YOUR_USERNAME` with your GitHub username or organization name.
 
 If GitHub asks you to sign in, follow the browser prompt. If it asks for a password in Terminal, use a GitHub personal access token instead of your account password.
 
+## 3a. If GitHub Says Password Authentication Is Not Supported
+
+GitHub no longer accepts account passwords for Git pushes over HTTPS. You must use either GitHub Desktop, SSH, GitHub CLI, or a personal access token.
+
+For this first push, the token route is usually the fastest:
+
+1. Go to GitHub in your browser.
+2. Open `Settings`.
+3. Open `Developer settings`.
+4. Open `Personal access tokens`.
+5. Choose `Fine-grained tokens`.
+6. Click `Generate new token`.
+7. Repository access: select only `weekly-projects-tracker`.
+8. Repository permissions:
+   - `Contents`: `Read and write`
+   - `Metadata`: `Read-only`
+9. Generate the token.
+10. Copy it once. GitHub will not show it again.
+
+Then push again:
+
+```bash
+git push -u origin main
+```
+
+When Terminal asks:
+
+```text
+Username:
+```
+
+enter your GitHub username.
+
+When Terminal asks:
+
+```text
+Password:
+```
+
+paste the token, not your GitHub password.
+
+If you already typed the wrong password and macOS cached it, clear the cached GitHub credential:
+
+```bash
+printf "protocol=https\nhost=github.com\n\n" | git credential-osxkeychain erase
+```
+
+Then run:
+
+```bash
+git push -u origin main
+```
+
 ## 4. Turn On GitHub Pages
 
 In the GitHub repo:
