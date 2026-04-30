@@ -1,0 +1,42 @@
+{
+  "base_url": "https://your-domain.atlassian.net",
+  "email_env": "JIRA_EMAIL",
+  "api_token_env": "JIRA_API_TOKEN",
+  "fields": [
+    "summary",
+    "status",
+    "statusCategory",
+    "assignee",
+    "priority",
+    "labels",
+    "components",
+    "fixVersions",
+    "duedate",
+    "updated",
+    "issuetype",
+    "customfield_10020",
+    "customfield_10014",
+    "customfield_10011",
+    "customfield_10016"
+  ],
+  "queries": [
+    {
+      "name": "Fulfillment active work",
+      "jql": "project in (TLVOD, FP, CVP, MB) AND statusCategory != Done ORDER BY priority DESC, updated DESC",
+      "max_results": 100
+    },
+    {
+      "name": "Fulfillment recently completed",
+      "jql": "project in (TLVOD, FP, CVP, MB) AND statusCategory = Done AND resolved >= -14d ORDER BY resolved DESC",
+      "max_results": 100
+    }
+  ],
+  "boards": [
+    {
+      "name": "Example Fulfillment Board",
+      "board_id": 12345,
+      "jql": "updated >= -14d OR statusCategory != Done",
+      "max_results": 100
+    }
+  ]
+}

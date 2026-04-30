@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fulfillment Weekly Tracker</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <p class="eyebrow">Leadership Operations</p>
+          <h1>Fulfillment Tracker</h1>
+          <div class="sidebar-meta">
+            <div>
+              <span>Week</span>
+              <strong id="sidebarWeek">-</strong>
+            </div>
+            <div>
+              <span>Deck</span>
+              <strong id="sidebarDeck">-</strong>
+            </div>
+          </div>
+        </div>
+
+        <nav class="view-nav" aria-label="Tracker views">
+          <button class="nav-button active" data-view="projects">Projects</button>
+          <button class="nav-button" data-view="highlights">Business</button>
+          <button class="nav-button" data-view="metrics">Metrics</button>
+          <button class="nav-button" data-view="jira">Jira</button>
+        </nav>
+
+        <section class="sidebar-section">
+          <div class="section-heading">
+            <h2>Workstreams</h2>
+          </div>
+          <div id="workstreamSummary" class="queue-summary"></div>
+        </section>
+
+        <section class="sidebar-section">
+          <div class="section-heading">
+            <h2>Status Mix</h2>
+          </div>
+          <div id="statusSummary" class="status-summary"></div>
+        </section>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Weekly Update Console</p>
+            <h2>Decision-ready fulfillment view</h2>
+          </div>
+          <div class="topbar-actions">
+            <a id="openBrief" class="button secondary" href="./outputs/leadership_brief.md">Brief</a>
+            <button id="exportCsv" class="button secondary" type="button">Export CSV</button>
+            <button id="openUpdateDialog" class="button primary" type="button">New Update</button>
+          </div>
+        </header>
+
+        <section class="hero-panel">
+          <div id="metricsGrid" class="metrics-grid"></div>
+          <div class="attention-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Leadership</p>
+                <h3>Attention Queue</h3>
+              </div>
+              <span id="attentionCount" class="pill neutral">0</span>
+            </div>
+            <div id="attentionList" class="attention-list"></div>
+          </div>
+        </section>
+
+        <section class="controls-panel">
+          <div class="search-field">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Project, owner, workstream, risk" />
+          </div>
+          <label class="filter">
+            <span>Workstream</span>
+            <select id="workstreamFilter"></select>
+          </label>
+          <label class="filter">
+            <span>Status</span>
+            <select id="statusFilter"></select>
+          </label>
+          <label class="toggle-filter">
+            <input id="attentionOnly" type="checkbox" />
+            <span>Leadership only</span>
+          </label>
+        </section>
+
+        <section class="content-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p id="mainEyebrow" class="eyebrow">Portfolio</p>
+                <h3 id="mainTitle">Projects</h3>
+              </div>
+              <span id="resultCount" class="pill neutral">0</span>
+            </div>
+            <div id="primaryList" class="primary-list"></div>
+          </div>
+
+          <aside class="panel detail-panel">
+            <div id="detailPane"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="updateDialog" class="dialog">
+      <form id="updateForm" class="dialog-form" method="dialog">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Weekly Intake</p>
+            <h3>New project update</h3>
+          </div>
+          <button type="button" id="closeUpdateDialog" class="icon-button" aria-label="Close">x</button>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Workstream
+            <select name="workstream" id="newWorkstream" required></select>
+          </label>
+          <label>
+            Status
+            <select name="status" id="newStatus" required></select>
+          </label>
+        </div>
+
+        <label>
+          Project
+          <input type="text" name="project" required placeholder="CVP - USA Sports workflow" />
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Owner
+            <input type="text" name="owner" placeholder="Team lead" />
+          </label>
+          <label>
+            Target date
+            <input type="text" name="targetDate" placeholder="5/15" />
+          </label>
+        </div>
+
+        <label>
+          This week update
+          <textarea name="update" rows="4" required placeholder="What changed this week?"></textarea>
+        </label>
+
+        <label>
+          Business impact
+          <textarea name="impact" rows="3" placeholder="Why it matters for leadership"></textarea>
+        </label>
+
+        <label>
+          Blocker or risk
+          <textarea name="risk" rows="3" placeholder="Dependency, decision, access issue, or timeline risk"></textarea>
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Leadership ask
+            <select name="ask" id="newAsk"></select>
+          </label>
+          <label>
+            Jira key or epic
+            <input type="text" name="jiraKey" placeholder="ABC-123" />
+          </label>
+        </div>
+
+        <label>
+          Help needed
+          <input type="text" name="help" placeholder="Decision, escalation, owner alignment" />
+        </label>
+
+        <div class="dialog-actions">
+          <button type="button" id="cancelUpdateDialog" class="button secondary">Cancel</button>
+          <button type="submit" class="button primary">Save update</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./data/tracker-data.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

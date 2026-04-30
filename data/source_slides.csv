@@ -1,0 +1,615 @@
+Slide,Slide Type,Extracted Text,Source Deck
+1,Title,"Content Supply Chain
+Monthly Ops Review
+1",April - Fulfillment  - Official.pptx
+2,Other,"OTTO
+MSNOW Rebrand
+COMPLETED 3/10
+April
+May
+TLVOD
+VTM Integration
+Week of 3/16
+OTTO | MB
+Datadog Setup
+4/2
+TLVOD
+Cyber Security Fixes
+Week of 4/6
+CVP
+Integrate
+Wildmoka
+Ingest Adapters
+In Progress
+FP
+Cyber Security Fixes
+Week of 4/6
+CVP
+TVE Short Form Encoding & Publish
+3/23
+TLVOD
+MSNOW Updates
+Week of 4/6
+Modernization (Polaris)
+Title Hub Integration
+5/29
+OTTO
+OTTO Release
+4/2
+Modernization
+Polaris-Media Shuttle Integration
+5/01
+March
+MB
+VCD Deployment
+5/15
+Modernization
+Auto QC Tool Setup
+5/22
+Presentation Name v1.0
+2
+OTTO/Media Broker
+Fulfillment Modernization
+TLVOD/
+Fulfillment Pipeline
+CVP
+4/23
+Integration with Unified Interface in TLL &
+WebScheduler
+4/30 Automated MS NOW
+Rundow
+n Reports
+5/15 Versant Content
+Dataforge
+(VCD) Production Deployment
+4/24 - Polaris-Media Shuttle (PoC)
+5/08 - Polaris-Media Shuttle (PROD)
+5/01 - Auto QC Tool (STAGE)
+5/22 - Auto QC Tool (PROD)
+5/29 - Polaris Title Hub Integration
+3/2 - FP Configuration updates for sanity tests
+3/15 - E2E environment for FP Transfer
+3/19 - VTM-TLVOD Integration
+3/19 - MSNOW Updates
+4/16 - FP Cyber Security Fixes
+4/30 - TLVOD Cyber Security Fixes
+5/1 - E2E environment for FP (full build)
+5/1 - TLVOD-VTM Title API
+Q2 - FP Node / Java upgrades
+4/1 - CVP - USA Sports Account Metadata Targeting
+4/1- SSO Security Implementation User Transition
+4/ - S3 bucket creation for USA Sports Account
+4/8 - Modify Content Unified
+calculatedAuthWindow
+value
+4/24 Security end of Life Notice
+Closed caption investigation metadata mismatch
+CMP migration for Versant accounts
+Department Overview
+Completed
+On Track
+Monitoring
+At Risk
+Blocked
+CVP
+Modify Content Unified Adapter
+4/8
+TLVOD
+TLVOD-VTM
+Title API
+5/1
+MB
+MB Release
+4/9
+CVP
+USA Sports S3 bucket creation and YT Implementation
+4/30
+CVP
+Closed Caption Investigation
+4/30",April - Fulfillment  - Official.pptx
+3,Project Highlights,"Presentation Name v1.0
+3
+Status
+Project
+Completed
+TLVOD-VTM Integration | Week of 3/15 | Reza
+Real-time testing with SQE, Dev, Product during week of 2/23 passed New Title Create in TLVOD but failed Existing Title Update
+Dev work to
+fix Existing Title Update in review as of 2/27
+Tracking positively to re-test and deploy week of 3/2
+Fast follow update to expand Genre matching possible for week of 3/9
+On Track
+TLVOD Cyber Security Remediations | Week of 4/16 | Reza
+Currently working through complex dependencies
+Completed
+TLVOD MSNOW Changes | Week of 3/6 | Reza
+Currently investigating expanded ETL solution for handling MS NOW External Advertiser ID field
+On Track
+Versant Content
+Dataforge
+- 5/15 | Tanvi
+The cloud setup and development are currently in progress, and Ed is targeting completion by the end of week 4/24
+We need to get APIs tested and
+based on when it is ready we need an additional week for testing
+On Track
+Show Rundown Reports Automation for Golf and News - 4
+/2
+Golf reporting automation capability is ready to be released in Production
+Workaround: Report can be pulled ad-hoc via OTTO UI
+Completed
+On Track
+Monitoring
+At Risk
+Blocked
+Project Highlights
+Team
+Status
+Project
+On Track
+TLVOD-VTM Title API integration | 5/1 | Reza
+Build TLVOD API to call VTM for missing titles
+On-track
+FP E2E Build| 5/1 | Reza
+Build E2E environment for FP
+On Track
+FP Cyber Security Remediations | 4/16 | Reza
+Uncovered underlying Java 17 dependencies, extending timeline to address
+Uncovered dependency on library that is currently not available in Nexus, awaiting resolution
+On track
+CVP SSO Migration | TBD | Chris H
+Working with Katie
+Mcbee
+and Golf team to figure out next
+ste
+ps for contracted editors. Requested another pull of users for our accounts to verify no missing users.
+Sending out alert emails starting week of 27th
+On track, No risks outlined
+On Track
+CVP End Security End Of Life Notification | Chris H
+Verified with all effected end point users that changes are either being made currently or ready for testing as of May 1st.",April - Fulfillment  - Official.pptx
+4,Project Highlights,"4
+Completed
+On Track
+Monitoring
+At Risk
+Blocked
+Project Highlights
+Status
+Project
+Monitoring
+CVP - TVE Short Form Encoding and Publish {
+Viewlift
+Support}
+Working with
+Viewlift
+team each week to test the SF encoding and publish workflow. Currently blocked, we need to get assets into
+cvp
+stage with all required metadata attached to test this workflow. Link to CVP stage not working.
+Tickets are in sprint and working towards our testing window of 3/23 Estimated release: 3/31
+On Track
+CVP - Integrate
+Wildmoka
+for USA Sports
+Extend
+Wildmoka
+integration To the USA Sports brand account enabling automated clip creation, consistent metadata, scalable distribution, and centralized monitoring within CVP workflows.
+Metadata package ticket created and submitted to PS team.
+Estimated time of completion: 4/30/2026
+On Track
+CVP - Modify Content Unified
+calculatedAuthWindow
+Investigation revealed that the Content Unified Ingest Adapter logic references multiple custom fields to update the
+calculatedAuthWindows
+value in the TVE account. It also uses logic based on
+authStartDateField
+,
+authWindows
+, and
+nextAuthWindowActionDate
+from the legacy Availability Window Revolver solution, which is now replaced by MAW (Multiple Availability Window).
+Changes have been implemented to stage account, aiming to release
+Wednesday
+4/8/26
+Auth window not changing when sent to CVP, Need correct FP Metadata
+packa
+ge to give to PS team.
+Status
+Project
+On Track
+CVP - Enable CMP
+Need to work with FP team to get correct FP payloads for caption analysis.
+Estimated Time of Completion: 6/30/2026
+On Track
+CVP - USA Sports Account Metadata Targeting
+S3 buckets created, IAM Users Created, currently with
+SoftOps
+to give access to IAM user role.
+Ticket for YouTube implement is unblocked after IAM user permissions established.
+Estimated Time of Completion: 4/1/2026
+On Track
+CVP - Snapped Fast Channels IVI Creation
+As part of the snapped fast channel initiative,
+Ketki
+and team have asked for an
+IVI
+to be created for the delivery of the snapped fast channels.
+Working with PS team to identify if this is necessary or if
+thi
+s can be delivered out of the existing workflow we have set up for fast channels.
+Request for Completion: 5/30/26
+On Track
+CVP - NBCU content removal notice
+As part of the snapped fast channel initiative,
+Ketki
+and team have asked for an
+IVI
+to be created for the delivery of the snapped fast channels.
+Working with PS team to identify if this is necessary or if this can be delivered out of the existing workflow we have set up for fast channels.
+Request for Completion: 5/30/26",April - Fulfillment  - Official.pptx
+5,Project Highlights,"Presentation Name v1.0
+5
+Completed
+On Track
+Monitoring
+At Risk
+Blocked
+Project Highlights
+Team
+Status
+Project
+On Track
+Modernization |
+Polaris-Media Shuttle PoC & Prod
+| 5/8 | Magda
+TMT to connect the new ingest bucket to Polaris stage
+4/24 - Polaris-Media Shuttle (PoC)
+5/08 - Polaris-Media Shuttle (PROD)
+On Track
+Modernization | Auto QC tool (
+Baton)
+| 5/22 | Magda
+Long from scripted baton profile testing plans are documented
+Baton-SDVI provided licenses to be used in Stage
+Temporary Baton licenses will be requested for Production
+Completed
+Modernization | Content Hub Architecture | 3/27 | Kosta
+Architecture majority defined
+Contracts for major use cases defined
+Currently exploring expanded Versant Content
+Dataforge
+and its role in facilitating data enrichment and possible CH enhancements.
+On Track
+Modernization | Polaris-Title Hub Integration | 5/29 | Kosta
+4/30 Title Hub API (DEV)
+5/8 Title Hub API (STAGE)
+5/29 Polaris-Title Hub Integration Complete (PROD)
+Status
+Project
+Upcoming
+Modernization | On-Prem File Drop Integration (Avid, Iris QC, RFA) | 5/15 | Magda
+Feasibility reviewed for using Transfer Services to deliver media on-prem for editing and high-res QC
+Signiant selected as the preferred file transfer solution
+Upcoming
+Modernization | SDVI-OL Integration (Archive) | 6/12 | Magda
+Upcoming
+Upcoming
+Modernization | Content Hub Build - Retrieval | 6/12 | Kosta
+Rich and Kosta currently defining and documenting DIVA restore flow
+Upcoming
+Modernization | Polaris-Content Hub Integration | 6/26 | Kosta
+Upcoming
+Upcoming
+Modernization | Cloud Transcode tool and Migration | 6/29 | Magda
+Upcoming",April - Fulfillment  - Official.pptx
+6,Business Highlights,"Presentation Name v1.0
+6
+Business Highlights
+Future USA Sports Short Form Clipping
+Estimated numbers of between 300-500 assets a month will be clipped and delivered with USA Sports CVP account.
+Golf Channel Live Events In May
+May 3 - Cadillac Championship (PGA Tour) / Mexico Riviera Maya Open (LPGA)
+May 10 - Wells Fargo Championship (PGA Tour) / Mizuho Americas Open (LPGA)
+May 17 - AT&T Byron Nelson (PGA Tour) / PGA Championship / Founders Cup (LPGA)
+May 24 - Charles Schwab Challenge (PGA Tour) / Bank of Hope LPGA Match Play
+May 31 - Memorial Tournament (PGA Tour)
+USA Sports NASCAR Coverage in May
+May 3 - Texas
+May 10 - Watkins Glen
+May 17 - All-Star Race (non-points)
+May 24 - Coca-Cola 600 (Charlotte)
+May 31 - Nashville
+Team
+WNBA Basketball Regular Season Games
+Sunday, May 10 (season debut on USA)
+Las Vegas Aces @ Los Angeles Sparks
+- 6:00 PM ET
+Wednesday, May 13 (doubleheader)
+Las Vegas Aces @ Connecticut Sun - 8:00 PM ET
+Indiana Fever @ Los Angeles Sparks - 10:30 PM ET",April - Fulfillment  - Official.pptx
+7,Business Highlights,"Presentation Name v1.0
+7
+Business Highlights
+Team
+TLVOD-VTM integration
+Implemented an automated integration between VTM and TLVOD to streamline the flow of title metadata, reducing manual data entry, minimizing errors, and enabling faster, more accurate scheduling and financial processing for programming teams.
+Adobe Premiere Support Sessions
+Adobe Premiere has been selected as the QC tool for the Fulfillment Modernization project. Weekly sessions with TMT, SDVI, and Operators provide a forum to address workflow, tool questions, and gather direct feedback. Post-Engineering is also exploring the addition of Premiere plugins to enhance QC capabilities.
+Modernization Stakeholders
+Team Leads from all Fulfillment stakeholder teams are involved in requirements gathering and system design for the new fulfillment platform on an ongoing basis
+They are invaluable resources in guiding our design and development process, helping us truly build a better mousetrap",April - Fulfillment  - Official.pptx
+8,Department Highlights,"Presentation Name v1.0
+8
+Department Highlights
+March Highlights
+Linear
+Net New Deliveries to Amagi
+% Longform (16)
+% Shortform: (2,056)
+% Graphics: (164)
+520 Assets
+/ 8.02 TB
+transferred from NBCU to Versant
+iComm
+122
+iComm
+deliveries
+TVN | Akamai: 112
+STB VOD DAI | CMC: 10
+TVE/VOD
+2,519
+Longform Deliveries through FP
+228
+Titles Delivered
+Digital
+1,885
+Shortform clips ingested and published
+CNBC: 0 → 0.0%
+E!: 436 → 23.1%
+Golf Channel: 235 → 12.5%
+MSNOW: 1080 → 57.3%
+Oxygen: 106 → 5.6%
+Syfy: 28 → 1.5%
+USA Network: 0 → 0.0%
+TVE/VOD Fulfillment",April - Fulfillment  - Official.pptx
+9,Appendix,"Presentation Name v1.0
+Appendix
+9",April - Fulfillment  - Official.pptx
+10,Department Highlights,"Presentation Name v1.0
+10
+Department Highlights
+The total number of asset registrations by media type in December is 2,550
+Media Types
+Longform
+3.5%
+Shortform
+90.6%
+Graphics
+5.8%
+A ""registration"" is completed when a technician verifies the file and approves it for delivery",April - Fulfillment  - Official.pptx
+11,Department Highlights,"Presentation Name v1.0
+11
+Department Highlights
+The total number of asset registrations by network in December is 2,550
+Networks
+USA
+Syfy
+Oxygen
+Golf
+E!
+MSNOW
+CNBC
+A ""registration"" is completed when a technician verifies the file and approves it for delivery",April - Fulfillment  - Official.pptx
+12,Department Highlights,"Presentation Name v1.0
+12
+Department Highlights
+Statistics
+Statistics Highlights
+The total number of asset registrations in December is 2,589
+Longform = 0.7%
+Shortform = 90.7%
+Graphics = 8.3%
+Content
+transferred from NBCU to Versant DIVA:
+Approximately ~2K individual asset files were received
+Total data volume: Combined file size equals roughly ~32 TB of data
+The total number of
+iCOMM
+registrations is 177
+Akamai: 133
+CMC: 45
+On-Prem Usage
+EC Vantage
+Avid
+Premiere
+Delivery volume by brand
+Linear | FAST | VOD
+Added FP Numbers to Slides 8 & 9",April - Fulfillment  - Official.pptx
+13,Title,"Content Supply Chain
+Monthly Ops Review
+13",April - Fulfillment  - Official.pptx
+14,Other,"April
+May
+TLVOD
+Cyber Security Fixes
+5/16
+FP
+Cyber Security Fixes
+4/15
+Modernization (Polaris)
+Title Hub Integration
+5/29
+March
+MB
+Dataforge Deployment
+4/23
+Presentation Name v1.0
+14
+OTTO/Media Broker
+Fulfillment Modernization
+TLVOD/
+Fulfillment Pipeline
+CVP
+4/9 Media Broker Release
+4/23 Versant Content
+Dataforge
+Production Deployment
+4/24 - Polaris-Media Shuttle (PoC)
+5/08 - Polaris-Media Shuttle (PROD)
+5/01 - Auto QC Tool (STAGE)
+5/22 - Auto QC Tool (PROD)
+5/29 - Polaris Title Hub Integration
+3/15 - E2E environment for FP Transfer
+4/16 - FP Cyber Security Fixes
+4/30 - TLVOD Cyber Security Fixes
+5/1 - E2E environment for FP (full build)
+5/1 - TLVOD-VTM Title API
+4/1 - CVP - USA Sports Account Metadata Targeting
+4/1- SSO Security Implementation User Transition
+4/8 - Modify Content Unified Ingest Adapter to handle media availability
+4/24 Security end of Life Notice
+4/30 - Snapped Fast Channel IVI Creation
+CMP for Versant Publishing
+Department Overview
+CVP
+Snapped Fast Channel IVI Creation
+4/30
+TLVOD
+TLVOD-VTM
+Title API
+5/1
+OTTO
+MSNOW Rebrand Update
+3/10
+COMPLETE
+COMPLETE
+TLVOD
+TLVOD-VTM Integration
+3/19
+OTTO | MB
+Datadog Setup
+4/2
+COMPLETE
+COMPLETE
+TLVOD
+MSNOW Frontend
+Rebrand
+4/6",April - Fulfillment  - Official.pptx
+15,Business Highlights,"Presentation Name v1.0
+15
+Business Highlights
+Future USA Sports Short Form Clipping
+Versant Media will broadcast over 10,000 hours of live sports, featuring a massive expansion in college sports, women's professional leagues, and various motorsport/golf events. Key highlights include extensive Pac-12 football and basketball, League One Volleyball, WNBA games, and continued coverage of NASCAR and PGA Tour.
+Golf Channel Live Events In April
+Augusta National Women's Amateur - April 1-4
+Valero Texas Open - April 2-5
+The Masters (Live From coverage) - April 9-12
+RBC Heritage - April 16-19
+Zurich Classic of New Orleans - April 23-26
+Major Upcoming Live Events & Coverage USA Sports (2026+)
+USA Sports Pac-12 Events (2026-2030): 22 football games, 50 men's basketball games, plus women's basketball.
+League One Volleyball (LOVB) (2026): Weekly Wednesday Match of the Week + Championship match.
+WNBA (2026): 50 regular-season games + select playoffs to covered on USA Sports.
+NASCAR & PGA Tour (2026): Ongoing race and golf coverage across USA Network, Golf Channel, and CNBC.
+Atlantic 10 Basketball (2026): New men's basketball coverage.
+Team",April - Fulfillment  - Official.pptx
+16,Business Highlights,"Presentation Name v1.0
+16
+Business Highlights
+Team
+ENT Archive Subclipping Screeners
+Implemented an automated integration between VTM and TLVOD to streamline the flow of title metadata, reducing manual data entry, minimizing errors, and enabling faster, more accurate scheduling and financial processing for programming teams.
+Adobe Premiere Support Sessions
+Adobe Premiere has been selected as the QC tool for the Fulfillment Modernization project. Weekly sessions with TMT, SDVI, and Operators provide a forum to address workflow, tool questions, and gather direct feedback. Post-Engineering is also exploring the addition of Premiere plugins to enhance QC capabilities.
+Modernization Stakeholders
+Team Leads from all Fulfillment stakeholder teams are involved in requirements gathering and system design for the new fulfillment platform on an ongoing basis.
+They are invaluable resources in guiding our design and development process, helping us truly build a better mousetrap.
+Smart Device Daily Briefing Skills
+Adobe Premiere has been selected as the QC tool for the Fulfillment Modernization project. Weekly sessions with TMT, SDVI, and Operators provide a forum to address workflow, tool questions, and gather direct feedback. Post-Engineering is also exploring the addition of Premiere plugins to enhance QC capabilities.",April - Fulfillment  - Official.pptx
+17,Department Highlights,"Presentation Name v1.0
+17
+Department Highlights
+March Highlights
+Linear
+2236
+Net New Deliveries to Amagi
+% Longform (16)
+% Shortform: (2,056)
+% Graphics: (164)
+520 Assets
+/ 8.02 TB
+transferred from NBCU to Versant
+iComm
+122
+iComm
+deliveries
+TVN | Akamai: 112
+STB VOD DAI | CMC: 10
+TVE/VOD
+2,519
+Longform Deliveries through FP
+228
+Titles Delivered
+Digital
+1,885
+Shortform clips ingested and published
+CNBC: 0 → 0.0%
+E!: 436 → 23.1%
+Golf Channel: 235 → 12.5%
+MSNOW: 1080 → 57.3%
+Oxygen: 106 → 5.6%
+Syfy: 28 → 1.5%
+USA Network: 0 → 0.0%
+TVE/VOD Fulfillment",April - Fulfillment  - Official.pptx
+18,Appendix,"Presentation Name v1.0
+Appendix
+18",April - Fulfillment  - Official.pptx
+19,Department Highlights,"Presentation Name v1.0
+19
+Department Highlights
+The total number of asset registrations by media type in December is 2,550
+Media Types
+Longform
+3.5%
+Shortform
+90.6%
+Graphics
+5.8%
+A ""registration"" is completed when a technician verifies the file and approves it for delivery",April - Fulfillment  - Official.pptx
+20,Department Highlights,"Presentation Name v1.0
+20
+Department Highlights
+The total number of asset registrations by network in December is 2,550
+Networks
+USA
+Syfy
+Oxygen
+Golf
+E!
+MSNOW
+CNBC
+A ""registration"" is completed when a technician verifies the file and approves it for delivery",April - Fulfillment  - Official.pptx
+21,Department Highlights,"Presentation Name v1.0
+21
+Department Highlights
+Statistics
+Statistics Highlights
+The total number of asset registrations in December is 2,589
+Longform = 0.7%
+Shortform = 90.7%
+Graphics = 8.3%
+Content
+transferred from NBCU to Versant DIVA:
+Approximately ~2K individual asset files were received
+Total data volume: Combined file size equals roughly ~32 TB of data
+The total number of
+iCOMM
+registrations is 177
+Akamai: 133
+CMC: 45
+On-Prem Usage
+EC Vantage
+Avid
+Premiere
+Delivery volume by brand
+Linear | FAST | VOD
+Added FP Numbers to Slides 8 & 9",April - Fulfillment  - Official.pptx
