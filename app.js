@@ -9,6 +9,80 @@ const trackerData = window.TRACKER_DATA || {
   briefPath: "outputs/leadership_brief.md",
 };
 
+const defaultConfig = {
+  documentTitle: "Weekly Projects Tracker",
+  storageNamespace: "weekly-projects-tracker",
+  labels: {
+    sidebarEyebrow: "Leadership Operations",
+    sidebarTitle: "Project Tracker",
+    weekLabel: "Week",
+    sourceLabel: "Source",
+    workstreamsTitle: "Workstreams",
+    statusTitle: "Status Mix",
+    topbarEyebrow: "Weekly Portfolio Review",
+    topbarTitle: "Portfolio overview",
+    briefButton: "Leadership Brief",
+    exportButton: "Export CSV",
+    addButton: "Add Update",
+    attentionEyebrow: "Leadership",
+    attentionTitle: "Attention Queue",
+    searchLabel: "Search",
+    searchPlaceholder: "Project, owner, workstream, risk",
+    workstreamFilterLabel: "Workstream",
+    statusFilterLabel: "Status",
+    leadershipOnlyLabel: "Leadership only",
+    dialogEyebrow: "Weekly Intake",
+    dialogTitle: "New project update",
+    projectLabel: "Project",
+    projectPlaceholder: "Project update",
+    ownerLabel: "Owner",
+    ownerPlaceholder: "Project lead",
+    targetDateLabel: "Target date",
+    targetDatePlaceholder: "5/15",
+    updateLabel: "This week update",
+    updatePlaceholder: "What changed this week?",
+    impactLabel: "Business impact",
+    impactPlaceholder: "Why it matters for leadership",
+    riskLabel: "Blocker or risk",
+    riskPlaceholder: "Dependency, decision, access issue, or timeline risk",
+    askLabel: "Leadership ask",
+    jiraLabel: "Jira key or epic",
+    jiraPlaceholder: "ABC-123",
+    helpLabel: "Help needed",
+    helpPlaceholder: "Decision, escalation, owner alignment",
+    cancelButton: "Cancel",
+    saveButton: "Save update",
+  },
+  views: {
+    projects: { nav: "Projects", eyebrow: "Portfolio", title: "Projects" },
+    highlights: { nav: "Highlights", eyebrow: "Business", title: "Highlights" },
+    metrics: { nav: "Metrics", eyebrow: "Operations", title: "Metrics" },
+    jira: { nav: "Jira", eyebrow: "Delivery", title: "Jira" },
+  },
+  statuses: ["Completed", "On Track", "Monitoring", "At Risk", "Blocked", "Upcoming"],
+  askOptions: ["No", "Yes", "Review"],
+  completedStatuses: ["Completed"],
+  onTrackStatuses: ["On Track"],
+  attentionStatuses: ["Blocked", "At Risk", "Monitoring"],
+  severityScores: { Blocked: 5, "At Risk": 4, Monitoring: 3, "On Track": 2, Upcoming: 1, Completed: 0 },
+  statusTones: { Completed: "completed", "On Track": "ontrack", Monitoring: "monitoring", "At Risk": "risk", Blocked: "blocked", Upcoming: "upcoming" },
+  defaultWorkstreams: ["Business"],
+  defaultWorkstream: "Business",
+  metricCards: {
+    projectsLabel: "Projects",
+    projectsNote: "{onTrack} on track",
+    attentionLabel: "Leadership asks",
+    attentionNote: "active attention",
+    completedLabel: "Completed",
+    completedNote: "closed updates",
+    highlightsLabel: "Business highlights",
+    highlightsNote: "{metrics} metrics",
+  },
+  theme: {},
+};
+
+const trackerConfig = mergeConfig(defaultConfig, window.TRACKER_CONFIG || {});
+
 const projectHeaders = [
   "Reporting Week",
   "Workstream",
@@ -29,9 +103,9 @@ const projectHeaders = [
   "Last Updated",
 ];
 
-const defaultStatuses = ["Completed", "On Track", "Monitoring", "At Risk", "Blocked", "Upcoming"];
-const askOptions = ["No", "Yes", "Review"];
-const storageKey = `fulfillment-tracker:${trackerData.reportingWeek || "current"}`;
+const defaultStatuses = trackerConfig.statuses;
+const askOptions = trackerConfig.askOptions;
+const storageKey = `${trackerConfig.storageNamespace}:${trackerData.reportingWeek || "current"}`;
 
 const baseProjects = (trackerData.projects || []).map((row, index) => normalizeProject(row, index, "deck"));
 const highlights = (trackerData.highlights || []).map((row, index) => normalizeHighlight(row, index));
@@ -54,6 +128,33 @@ const state = {
 const elements = {
   sidebarWeek: document.getElementById("sidebarWeek"),
   sidebarDeck: document.getElementById("sidebarDeck"),
+  sidebarEyebrow: document.getElementById("sidebarEyebrow"),
+  sidebarTitle: document.getElementById("sidebarTitle"),
+  weekLabel: document.getElementById("weekLabel"),
+  sourceLabel: document.getElementById("sourceLabel"),
+  workstreamsTitle: document.getElementById("workstreamsTitle"),
+  statusTitle: document.getElementById("statusTitle"),
+  topbarEyebrow: document.getElementById("topbarEyebrow"),
+  topbarTitle: document.getElementById("topbarTitle"),
+  attentionEyebrow: document.getElementById("attentionEyebrow"),
+  attentionTitle: document.getElementById("attentionTitle"),
+  searchLabel: document.getElementById("searchLabel"),
+  workstreamFilterLabel: document.getElementById("workstreamFilterLabel"),
+  statusFilterLabel: document.getElementById("statusFilterLabel"),
+  leadershipOnlyLabel: document.getElementById("leadershipOnlyLabel"),
+  dialogEyebrow: document.getElementById("dialogEyebrow"),
+  dialogTitle: document.getElementById("dialogTitle"),
+  dialogWorkstreamLabel: document.getElementById("dialogWorkstreamLabel"),
+  dialogStatusLabel: document.getElementById("dialogStatusLabel"),
+  projectLabel: document.getElementById("projectLabel"),
+  ownerLabel: document.getElementById("ownerLabel"),
+  targetDateLabel: document.getElementById("targetDateLabel"),
+  updateLabel: document.getElementById("updateLabel"),
+  impactLabel: document.getElementById("impactLabel"),
+  riskLabel: document.getElementById("riskLabel"),
+  askLabel: document.getElementById("askLabel"),
+  jiraLabel: document.getElementById("jiraLabel"),
+  helpLabel: document.getElementById("helpLabel"),
   workstreamSummary: document.getElementById("workstreamSummary"),
   statusSummary: document.getElementById("statusSummary"),
   metricsGrid: document.getElementById("metricsGrid"),
@@ -83,6 +184,7 @@ const elements = {
 init();
 
 function init() {
+  applyConfig();
   elements.sidebarWeek.textContent = trackerData.reportingWeek || "Not set";
   elements.sidebarDeck.textContent = trackerData.deckName || "No deck loaded";
   elements.openBrief.href = `./${trackerData.briefPath || "outputs/leadership_brief.md"}`;
@@ -90,6 +192,63 @@ function init() {
   populateFilters();
   bindEvents();
   render();
+}
+
+function applyConfig() {
+  const labels = trackerConfig.labels;
+  document.title = trackerConfig.documentTitle || labels.sidebarTitle || "Weekly Projects Tracker";
+
+  setText(elements.sidebarEyebrow, labels.sidebarEyebrow);
+  setText(elements.sidebarTitle, labels.sidebarTitle);
+  setText(elements.weekLabel, labels.weekLabel);
+  setText(elements.sourceLabel, labels.sourceLabel);
+  setText(elements.workstreamsTitle, labels.workstreamsTitle);
+  setText(elements.statusTitle, labels.statusTitle);
+  setText(elements.topbarEyebrow, labels.topbarEyebrow);
+  setText(elements.topbarTitle, labels.topbarTitle);
+  setText(elements.openBrief, labels.briefButton);
+  setText(elements.exportCsv, labels.exportButton);
+  setText(elements.openUpdateDialog, labels.addButton);
+  setText(elements.attentionEyebrow, labels.attentionEyebrow);
+  setText(elements.attentionTitle, labels.attentionTitle);
+  setText(elements.searchLabel, labels.searchLabel);
+  setText(elements.workstreamFilterLabel, labels.workstreamFilterLabel);
+  setText(elements.statusFilterLabel, labels.statusFilterLabel);
+  setText(elements.leadershipOnlyLabel, labels.leadershipOnlyLabel);
+  setText(elements.dialogEyebrow, labels.dialogEyebrow);
+  setText(elements.dialogTitle, labels.dialogTitle);
+  setText(elements.dialogWorkstreamLabel, labels.workstreamFilterLabel);
+  setText(elements.dialogStatusLabel, labels.statusFilterLabel);
+  setText(elements.projectLabel, labels.projectLabel);
+  setText(elements.ownerLabel, labels.ownerLabel);
+  setText(elements.targetDateLabel, labels.targetDateLabel);
+  setText(elements.updateLabel, labels.updateLabel);
+  setText(elements.impactLabel, labels.impactLabel);
+  setText(elements.riskLabel, labels.riskLabel);
+  setText(elements.askLabel, labels.askLabel);
+  setText(elements.jiraLabel, labels.jiraLabel);
+  setText(elements.helpLabel, labels.helpLabel);
+  setText(elements.cancelUpdateDialog, labels.cancelButton);
+  setText(elements.updateForm.querySelector('button[type="submit"]'), labels.saveButton);
+
+  elements.searchInput.placeholder = labels.searchPlaceholder || "";
+  setNamedPlaceholder("project", labels.projectPlaceholder);
+  setNamedPlaceholder("owner", labels.ownerPlaceholder);
+  setNamedPlaceholder("targetDate", labels.targetDatePlaceholder);
+  setNamedPlaceholder("update", labels.updatePlaceholder);
+  setNamedPlaceholder("impact", labels.impactPlaceholder);
+  setNamedPlaceholder("risk", labels.riskPlaceholder);
+  setNamedPlaceholder("jiraKey", labels.jiraPlaceholder);
+  setNamedPlaceholder("help", labels.helpPlaceholder);
+
+  document.querySelectorAll(".nav-button").forEach((button) => {
+    const view = trackerConfig.views[button.dataset.view];
+    if (view && view.nav) button.textContent = view.nav;
+  });
+
+  Object.entries(trackerConfig.theme || {}).forEach(([key, value]) => {
+    if (value) document.documentElement.style.setProperty(`--${kebabCase(key)}`, value);
+  });
 }
 
 function bindEvents() {
@@ -124,8 +283,8 @@ function bindEvents() {
 
   elements.openUpdateDialog.addEventListener("click", () => {
     elements.updateForm.reset();
-    elements.newStatus.value = "On Track";
-    elements.newAsk.value = "No";
+    elements.newStatus.value = defaultStatus();
+    elements.newAsk.value = askOptions.includes("No") ? "No" : askOptions[0] || "";
     elements.updateDialog.showModal();
   });
 
@@ -212,13 +371,14 @@ function renderNav() {
 function renderDashboardMetrics() {
   const allProjects = getProjects();
   const attention = allProjects.filter(isAttentionProject).length;
-  const completed = allProjects.filter((item) => item.status === "Completed").length;
-  const onTrack = allProjects.filter((item) => item.status === "On Track").length;
+  const completed = allProjects.filter((item) => (trackerConfig.completedStatuses || []).includes(item.status)).length;
+  const onTrack = allProjects.filter((item) => (trackerConfig.onTrackStatuses || []).includes(item.status)).length;
+  const metricCopy = trackerConfig.metricCards || {};
   const cards = [
-    { label: "Projects", value: allProjects.length, note: `${onTrack} on track`, tone: "neutral" },
-    { label: "Leadership asks", value: attention, note: "active attention", tone: attention ? "risk" : "ready" },
-    { label: "Completed", value: completed, note: "closed updates", tone: "ready" },
-    { label: "Business highlights", value: highlights.length, note: `${metrics.length} metrics`, tone: "progress" },
+    { label: metricCopy.projectsLabel, value: allProjects.length, note: formatMetricNote(metricCopy.projectsNote, { onTrack, metrics: metrics.length }), tone: "neutral" },
+    { label: metricCopy.attentionLabel, value: attention, note: formatMetricNote(metricCopy.attentionNote, { onTrack, metrics: metrics.length }), tone: attention ? "risk" : "ready" },
+    { label: metricCopy.completedLabel, value: completed, note: formatMetricNote(metricCopy.completedNote, { onTrack, metrics: metrics.length }), tone: "ready" },
+    { label: metricCopy.highlightsLabel, value: highlights.length, note: formatMetricNote(metricCopy.highlightsNote, { onTrack, metrics: metrics.length }), tone: "progress" },
   ];
 
   elements.metricsGrid.innerHTML = cards.map((card) => `
@@ -286,14 +446,9 @@ function renderSidebarSummary() {
 }
 
 function renderPrimaryList() {
-  const viewCopy = {
-    projects: ["Portfolio", "Projects"],
-    highlights: ["Business", "Highlights"],
-    metrics: ["Operations", "Metrics"],
-    jira: ["Delivery", "Jira"],
-  };
-  elements.mainEyebrow.textContent = viewCopy[state.activeView][0];
-  elements.mainTitle.textContent = viewCopy[state.activeView][1];
+  const viewCopy = trackerConfig.views[state.activeView] || trackerConfig.views.projects;
+  elements.mainEyebrow.textContent = viewCopy.eyebrow;
+  elements.mainTitle.textContent = viewCopy.title;
 
   const projectMode = state.activeView === "projects";
   elements.workstreamFilter.disabled = !projectMode;
@@ -646,7 +801,7 @@ function getFilteredProjects() {
 }
 
 function getWorkstreams() {
-  return Array.from(new Set(getProjects().map((project) => project.workstream).filter(Boolean))).sort();
+  return Array.from(new Set([...(trackerConfig.defaultWorkstreams || []), ...getProjects().map((project) => project.workstream).filter(Boolean)])).sort();
 }
 
 function getStatuses() {
@@ -655,13 +810,12 @@ function getStatuses() {
 }
 
 function isAttentionProject(project) {
-  if (project.status === "Completed") return false;
-  return project.ask === "Yes" || ["Blocked", "At Risk", "Monitoring"].includes(project.status) || Boolean(project.risk);
+  if ((trackerConfig.completedStatuses || []).includes(project.status)) return false;
+  return project.ask === "Yes" || (trackerConfig.attentionStatuses || []).includes(project.status) || Boolean(project.risk);
 }
 
 function severityScore(project) {
-  const scores = { Blocked: 5, "At Risk": 4, Monitoring: 3, "On Track": 2, Upcoming: 1, Completed: 0 };
-  return (scores[project.status] || 0) + (project.ask === "Yes" ? 2 : 0) + (project.risk ? 1 : 0);
+  return ((trackerConfig.severityScores || {})[project.status] || 0) + (project.ask === "Yes" ? 2 : 0) + (project.risk ? 1 : 0);
 }
 
 function matchesSearch(item) {
@@ -685,9 +839,9 @@ function normalizeProject(row, index, sourceType) {
   return {
     id: row.id || `${sourceType}-${slug(projectName)}-${row["Source Slide"] || index}-${index}`,
     reportingWeek: row["Reporting Week"] || trackerData.reportingWeek || "",
-    workstream: row.Workstream || "Business",
+    workstream: row.Workstream || trackerConfig.defaultWorkstream || "Business",
     project: projectName,
-    status: row.Status || "On Track",
+    status: row.Status || defaultStatus(),
     owner: row.Owner || "",
     targetDate: row["Target Date"] || "",
     update: row["This Week Update"] || "",
@@ -758,6 +912,7 @@ function metaRow(label, value) {
 }
 
 function statusPillClass(status) {
+  if ((trackerConfig.statusTones || {})[status]) return trackerConfig.statusTones[status];
   if (status === "Completed") return "completed";
   if (status === "On Track") return "ontrack";
   if (status === "Monitoring") return "monitoring";
@@ -855,4 +1010,43 @@ function escapeHtml(value) {
 
 function escapeAttribute(value) {
   return escapeHtml(value);
+}
+
+function mergeConfig(base, override) {
+  const merged = { ...base };
+  Object.entries(override || {}).forEach(([key, value]) => {
+    if (value && typeof value === "object" && !Array.isArray(value) && base[key] && typeof base[key] === "object" && !Array.isArray(base[key])) {
+      merged[key] = mergeConfig(base[key], value);
+    } else {
+      merged[key] = value;
+    }
+  });
+  return merged;
+}
+
+function setText(element, value) {
+  if (element && value !== undefined) element.textContent = value;
+}
+
+function setNamedPlaceholder(name, value) {
+  const field = elements.updateForm.querySelector(`[name="${name}"]`);
+  if (field && value !== undefined) field.placeholder = value;
+}
+
+function kebabCase(value) {
+  return String(value || "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/_/g, "-")
+    .toLowerCase();
+}
+
+function defaultStatus() {
+  const preferred = (trackerConfig.onTrackStatuses || []).find((status) => defaultStatuses.includes(status));
+  return preferred || defaultStatuses[0] || "";
+}
+
+function formatMetricNote(template, values) {
+  return String(template || "")
+    .replace(/\{onTrack\}/g, String(values.onTrack || 0))
+    .replace(/\{metrics\}/g, String(values.metrics || 0));
 }

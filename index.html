@@ -4,21 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fulfillment Weekly Tracker</title>
-    <link rel="stylesheet" href="./styles.css?v=20260508-portfolio-refresh" />
+    <link rel="stylesheet" href="./styles.css?v=20260511-pmo-template" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar">
         <div class="sidebar-top">
-          <p class="eyebrow">Leadership Operations</p>
-          <h1>Fulfillment Tracker</h1>
+          <p id="sidebarEyebrow" class="eyebrow">Leadership Operations</p>
+          <h1 id="sidebarTitle">Fulfillment Tracker</h1>
           <div class="sidebar-meta">
             <div>
-              <span>Week</span>
+              <span id="weekLabel">Week</span>
               <strong id="sidebarWeek">-</strong>
             </div>
             <div>
-              <span>Deck</span>
+              <span id="sourceLabel">Source</span>
               <strong id="sidebarDeck">-</strong>
             </div>
           </div>
@@ -33,14 +33,14 @@
 
         <section class="sidebar-section">
           <div class="section-heading">
-            <h2>Workstreams</h2>
+            <h2 id="workstreamsTitle">Workstreams</h2>
           </div>
           <div id="workstreamSummary" class="queue-summary"></div>
         </section>
 
         <section class="sidebar-section">
           <div class="section-heading">
-            <h2>Status Mix</h2>
+            <h2 id="statusTitle">Status Mix</h2>
           </div>
           <div id="statusSummary" class="status-summary"></div>
         </section>
@@ -49,8 +49,8 @@
       <main class="main-content">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Weekly Portfolio Review</p>
-            <h2>Fulfillment portfolio overview</h2>
+            <p id="topbarEyebrow" class="eyebrow">Weekly Portfolio Review</p>
+            <h2 id="topbarTitle">Fulfillment portfolio overview</h2>
           </div>
           <div class="topbar-actions">
             <a id="openBrief" class="button secondary" href="./outputs/leadership_brief.md">Leadership Brief</a>
@@ -64,8 +64,8 @@
           <div class="attention-panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Leadership</p>
-                <h3>Attention Queue</h3>
+                <p id="attentionEyebrow" class="eyebrow">Leadership</p>
+                <h3 id="attentionTitle">Attention Queue</h3>
               </div>
               <span id="attentionCount" class="pill neutral">0</span>
             </div>
@@ -75,20 +75,20 @@
 
         <section class="controls-panel">
           <div class="search-field">
-            <span>Search</span>
+            <span id="searchLabel">Search</span>
             <input id="searchInput" type="search" placeholder="Project, owner, workstream, risk" />
           </div>
           <label class="filter">
-            <span>Workstream</span>
+            <span id="workstreamFilterLabel">Workstream</span>
             <select id="workstreamFilter"></select>
           </label>
           <label class="filter">
-            <span>Status</span>
+            <span id="statusFilterLabel">Status</span>
             <select id="statusFilter"></select>
           </label>
           <label class="toggle-filter">
             <input id="attentionOnly" type="checkbox" />
-            <span>Leadership only</span>
+            <span id="leadershipOnlyLabel">Leadership only</span>
           </label>
         </section>
 
@@ -115,67 +115,67 @@
       <form id="updateForm" class="dialog-form" method="dialog">
         <div class="panel-header">
           <div>
-            <p class="eyebrow">Weekly Intake</p>
-            <h3>New project update</h3>
+            <p id="dialogEyebrow" class="eyebrow">Weekly Intake</p>
+            <h3 id="dialogTitle">New project update</h3>
           </div>
           <button type="button" id="closeUpdateDialog" class="icon-button" aria-label="Close">x</button>
         </div>
 
         <div class="form-grid">
           <label>
-            Workstream
+            <span id="dialogWorkstreamLabel">Workstream</span>
             <select name="workstream" id="newWorkstream" required></select>
           </label>
           <label>
-            Status
+            <span id="dialogStatusLabel">Status</span>
             <select name="status" id="newStatus" required></select>
           </label>
         </div>
 
         <label>
-          Project
+          <span id="projectLabel">Project</span>
           <input type="text" name="project" required placeholder="CVP - USA Sports workflow" />
         </label>
 
         <div class="form-grid">
           <label>
-            Owner
+            <span id="ownerLabel">Owner</span>
             <input type="text" name="owner" placeholder="Team lead" />
           </label>
           <label>
-            Target date
+            <span id="targetDateLabel">Target date</span>
             <input type="text" name="targetDate" placeholder="5/15" />
           </label>
         </div>
 
         <label>
-          This week update
+          <span id="updateLabel">This week update</span>
           <textarea name="update" rows="4" required placeholder="What changed this week?"></textarea>
         </label>
 
         <label>
-          Business impact
+          <span id="impactLabel">Business impact</span>
           <textarea name="impact" rows="3" placeholder="Why it matters for leadership"></textarea>
         </label>
 
         <label>
-          Blocker or risk
+          <span id="riskLabel">Blocker or risk</span>
           <textarea name="risk" rows="3" placeholder="Dependency, decision, access issue, or timeline risk"></textarea>
         </label>
 
         <div class="form-grid">
           <label>
-            Leadership ask
+            <span id="askLabel">Leadership ask</span>
             <select name="ask" id="newAsk"></select>
           </label>
           <label>
-            Jira key or epic
+            <span id="jiraLabel">Jira key or epic</span>
             <input type="text" name="jiraKey" placeholder="ABC-123" />
           </label>
         </div>
 
         <label>
-          Help needed
+          <span id="helpLabel">Help needed</span>
           <input type="text" name="help" placeholder="Decision, escalation, owner alignment" />
         </label>
 
@@ -186,7 +186,8 @@
       </form>
     </dialog>
 
-    <script src="./data/tracker-data.js?v=20260508-portfolio-refresh"></script>
-    <script src="./app.js?v=20260508-portfolio-refresh"></script>
+    <script src="./config/tracker-config.js?v=20260511-pmo-template"></script>
+    <script src="./data/tracker-data.js?v=20260511-pmo-template"></script>
+    <script src="./app.js?v=20260511-pmo-template"></script>
   </body>
 </html>

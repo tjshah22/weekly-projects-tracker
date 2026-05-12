@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Build a weekly leadership project tracker from a fulfillment update deck.
+Build a weekly leadership project tracker from a fulfillment update deck,
+Jira, or both.
 
-The script intentionally uses only the standard library plus openpyxl so it can
+The app data refresh path intentionally uses only the standard library so it can
 run in a locked-down corporate environment. PPTX files are ZIP packages with XML
 inside, so the deck extraction is dependency-light and easy to audit.
 """
@@ -25,11 +26,16 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.datavalidation import DataValidation
-from openpyxl.worksheet.table import Table, TableStyleInfo
+try:
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.datavalidation import DataValidation
+    from openpyxl.worksheet.table import Table, TableStyleInfo
+except ImportError:
+    Workbook = None
+    Alignment = Border = DataValidation = Font = PatternFill = Side = Table = TableStyleInfo = None
+    get_column_letter = None
 
 
 PML_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
@@ -823,7 +829,6 @@ def fetch_jira(config_path: Path) -> List[Dict[str, str]]:
         [
             "summary",
             "status",
-            "statusCategory",
             "assignee",
             "priority",
             "labels",
@@ -873,6 +878,80 @@ def fetch_jira(config_path: Path) -> List[Dict[str, str]]:
             if start_at >= int(data.get("total", start_at)):
                 break
     return rows
+
+
+def jira_status_to_tracker_status(status: str, status_category: str) -> str:
+    status_lower = clean_text(status).lower()
+    category_lower = clean_text(status_category).lower()
+    if "block" in status_lower or "impediment" in status_lower:
+        return "Blocked"
+    if category_lower == "done" or status_lower in {"done", "closed", "resolved", "complete", "completed"}:
+        return "Completed"
+    if any(token in status_lower for token in ["risk", "at risk"]):
+        return "At Risk"
+    if any(token in status_lower for token in ["monitor", "review", "waiting", "hold", "dependency"]):
+        return "Monitoring"
+    if category_lower in {"in progress", "indeterminate"} or any(token in status_lower for token in ["progress", "active", "doing"]):
+        return "On Track"
+    return "Upcoming"
+
+
+def infer_workstream_from_jira(row: Dict[str, str]) -> str:
+    text = " ".join(
+        [
+            row.get("Components", ""),
+            row.get("Labels", ""),
+            row.get("Query/Board", ""),
+            row.get("Summary", ""),
+            row.get("Epic Name", ""),
+        ]
+    ).lower()
+    if any(token in text for token in ["polaris", "modernization", "content hub", "auto qc", "sdvi"]):
+        return "Fulfillment Modernization"
+    if any(token in text for token in ["cvp", "wildmoka", "viewlift"]):
+        return "CVP"
+    if any(token in text for token in ["tlvod", "fp", "fulfillment pipeline", "vtm"]):
+        return "TLVOD/Fulfillment Pipeline"
+    if any(token in text for token in ["otto", "media broker", "dataforge", "rundown"]):
+        return "OTTO/Media Broker"
+    return "Business"
+
+
+def jira_row_to_project(row: Dict[str, str], reporting_week: str) -> Dict[str, str]:
+    issue_key = row.get("Issue Key", "")
+    summary = row.get("Summary", "")
+    status = jira_status_to_tracker_status(row.get("Status", ""), row.get("Status Category", ""))
+    project_name = f"{issue_key} - {summary}" if issue_key else summary
+    risk = ""
+    priority = row.get("Priority", "")
+    if status in {"Blocked", "At Risk", "Monitoring"}:
+        risk = f"Jira status is {row.get('Status', status)}."
+    elif priority.lower() in {"highest", "critical", "blocker"}:
+        risk = f"High-priority Jira item: {priority}."
+    milestone_parts = [row.get("Sprint", ""), row.get("Fix Versions", "")]
+    return {
+        "Reporting Week": reporting_week,
+        "Workstream": infer_workstream_from_jira(row),
+        "Project": clean_text(project_name) or "Jira issue",
+        "Status": status,
+        "Owner": row.get("Assignee", "") or "Unassigned",
+        "Target Date": row.get("Due Date", ""),
+        "This Week Update": clean_text(" | ".join(part for part in [row.get("Issue Type", ""), row.get("Status", ""), priority] if part)),
+        "Next Milestone": clean_text(" | ".join(part for part in milestone_parts if part)),
+        "Business Impact": clean_text("Components: " + row.get("Components", "")) if row.get("Components") else "",
+        "Blocker or Risk": risk,
+        "Leadership Ask": leadership_ask_from_risk(risk),
+        "Help Needed": "Review Jira blocker/dependency." if status in {"Blocked", "At Risk"} else "",
+        "Jira Key/Epic": issue_key or row.get("Epic Key", ""),
+        "Jira URL": row.get("URL", ""),
+        "Source Slide": "Jira",
+        "Source Deck": row.get("Query/Board", "Jira"),
+        "Last Updated": row.get("Updated", "")[:10] or reporting_week,
+    }
+
+
+def jira_rows_to_projects(rows: Sequence[Dict[str, str]], reporting_week: str) -> List[Dict[str, str]]:
+    return [jira_row_to_project(row, reporting_week) for row in rows if row.get("Issue Key") or row.get("Summary")]
 
 
 def write_csv(path: Path, headers: Sequence[str], rows: Sequence[Dict[str, str]]) -> None:
@@ -940,7 +1019,7 @@ def populate_summary(ws, projects: Sequence[Dict[str, str]], blockers: Sequence[
     ws["A1"] = "Weekly Fulfillment Leadership Update"
     ws["A1"].font = Font(size=18, bold=True, color="1F4E78")
     ws["A2"] = f"Reporting week: {reporting_week}"
-    ws["A3"] = f"Source deck: {deck_name}"
+    ws["A3"] = f"Source: {deck_name}"
 
     cards = [
         ("Total Projects", len(projects)),
@@ -972,7 +1051,7 @@ def populate_summary(ws, projects: Sequence[Dict[str, str]], blockers: Sequence[
             ws.cell(row=row_num, column=4, value=blocker.get("Help Needed"))
             row_num += 1
     else:
-        ws.cell(row=row_num, column=1, value="No blockers or at-risk items were extracted from this deck.")
+        ws.cell(row=row_num, column=1, value="No blockers or at-risk items were found in this refresh.")
         row_num += 1
 
     ws[f"A{row_num + 1}"] = "Business Highlights"
@@ -1051,6 +1130,8 @@ def write_workbook(
     source_rows: Sequence[Dict[str, str]],
     reporting_week: str,
 ) -> None:
+    if Workbook is None:
+        raise RuntimeError("Install openpyxl to export the optional workbook. The browser tracker refresh does not require it.")
     path.parent.mkdir(parents=True, exist_ok=True)
     wb = Workbook()
     summary = wb.active
@@ -1115,7 +1196,7 @@ def write_leadership_brief(
     lines = [
         f"# Weekly Fulfillment Leadership Update - {reporting_week}",
         "",
-        f"Source deck: {deck_path.name}",
+        f"Source: {deck_path.name}",
         "",
         "## Snapshot",
         "",
@@ -1132,7 +1213,7 @@ def write_leadership_brief(
         for blocker in blockers[:8]:
             lines.append(f"- {blocker.get('Project')} [{blocker.get('Status')}]: {blocker.get('Blocker or Risk') or 'Review status and next action.'}")
     else:
-        lines.append("- No blockers or at-risk items were extracted from this deck.")
+        lines.append("- No blockers or at-risk items were found in this refresh.")
     lines.extend(["", "## Business Highlights", ""])
     for highlight in highlights[:8]:
         impact = f" ({highlight.get('Impact/Volume')})" if highlight.get("Impact/Volume") else ""
@@ -1191,12 +1272,13 @@ def source_slide_rows(slides: Sequence[Dict[str, Any]], deck_name: str) -> List[
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Refresh weekly leadership tracker from a PPTX deck and optional Jira export.")
-    parser.add_argument("--deck", required=True, type=Path, help="Path to the weekly PowerPoint deck.")
+    parser.add_argument("--deck", type=Path, help="Optional path to the weekly PowerPoint deck.")
     parser.add_argument("--reporting-week", default=dt.date.today().isoformat(), help="Reporting week/date to stamp into tracker rows.")
     parser.add_argument("--output-dir", type=Path, default=Path(__file__).resolve().parents[1], help="Tracker package directory.")
     parser.add_argument("--fetch-jira", action="store_true", help="Fetch Jira rows using --jira-config.")
     parser.add_argument("--jira-config", type=Path, default=None, help="Path to Jira config JSON. Required with --fetch-jira.")
     parser.add_argument("--jira-csv", type=Path, default=None, help="Optional existing Jira CSV to include without fetching.")
+    parser.add_argument("--jira-as-projects", action="store_true", help="Add fetched/imported Jira issues to the main Project Tracker rows.")
     return parser.parse_args(argv)
 
 
@@ -1210,17 +1292,28 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     output_dir = args.output_dir.resolve()
     data_dir = output_dir / "data"
     outputs_dir = output_dir / "outputs"
-    deck_path = args.deck.expanduser().resolve()
-    if not deck_path.exists():
+    deck_path = args.deck.expanduser().resolve() if args.deck else None
+    if deck_path and not deck_path.exists():
         print(f"Deck not found: {deck_path}", file=sys.stderr)
         return 2
 
-    slides = extract_slides(deck_path)
-    projects = extract_projects(slides, deck_path.name, args.reporting_week)
-    highlights = extract_business_highlights(slides, deck_path.name, args.reporting_week)
-    metrics = extract_department_metrics(slides, deck_path.name)
-    blockers = build_blockers(projects)
-    source_rows = source_slide_rows(slides, deck_path.name)
+    if not deck_path and not args.fetch_jira and not args.jira_csv:
+        print("Provide --deck, --fetch-jira, or --jira-csv so the tracker has a source to refresh from.", file=sys.stderr)
+        return 2
+
+    source_path = deck_path or Path("Jira connected tracker")
+    slides: List[Dict[str, Any]] = []
+    projects: List[Dict[str, str]] = []
+    highlights: List[Dict[str, str]] = []
+    metrics: List[Dict[str, str]] = []
+    source_rows: List[Dict[str, str]] = []
+
+    if deck_path:
+        slides = extract_slides(deck_path)
+        projects = extract_projects(slides, deck_path.name, args.reporting_week)
+        highlights = extract_business_highlights(slides, deck_path.name, args.reporting_week)
+        metrics = extract_department_metrics(slides, deck_path.name)
+        source_rows = source_slide_rows(slides, deck_path.name)
 
     jira_rows: List[Dict[str, str]] = []
     if args.fetch_jira:
@@ -1231,6 +1324,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     elif args.jira_csv:
         jira_rows = read_jira_csv(args.jira_csv.expanduser().resolve())
 
+    jira_project_rows: List[Dict[str, str]] = []
+    if args.jira_as_projects and jira_rows:
+        jira_project_rows = jira_rows_to_projects(jira_rows, args.reporting_week)
+        projects = dedupe_projects([*projects, *jira_project_rows])
+
+    blockers = build_blockers(projects)
+
     write_csv(data_dir / "projects.csv", PROJECT_HEADERS, projects)
     write_csv(data_dir / "blockers_and_risks.csv", BLOCKER_HEADERS, blockers)
     write_csv(data_dir / "business_highlights.csv", HIGHLIGHT_HEADERS, highlights)
@@ -1240,8 +1340,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     brief_path = outputs_dir / "leadership_brief.md"
     dashboard_data_path = data_dir / "tracker-data.js"
-    write_leadership_brief(brief_path, projects, blockers, highlights, metrics, deck_path, args.reporting_week)
-    write_dashboard_data(dashboard_data_path, projects, blockers, highlights, metrics, jira_rows, source_rows, deck_path, args.reporting_week)
+    write_leadership_brief(brief_path, projects, blockers, highlights, metrics, source_path, args.reporting_week)
+    write_dashboard_data(dashboard_data_path, projects, blockers, highlights, metrics, jira_rows, source_rows, source_path, args.reporting_week)
 
     print(f"Created leadership brief: {brief_path}")
     print(f"Created dashboard data: {dashboard_data_path}")
@@ -1250,6 +1350,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print("No Jira rows included yet. Configure config/jira.json and rerun with --fetch-jira when ready.")
     else:
         print(f"Included {len(jira_rows)} Jira rows.")
+        if args.jira_as_projects:
+            print(f"Added {len(jira_project_rows)} Jira rows to the main Project Tracker.")
     return 0
 
 

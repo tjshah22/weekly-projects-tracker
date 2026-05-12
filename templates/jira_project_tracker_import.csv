@@ -1,0 +1,4 @@
+Summary,Issue Type,Status,Assignee,Due date,Priority,Labels,Components,Description
+Fulfillment Modernization weekly update,Task,To Do,,2026-05-15,Medium,"weekly-update,leadership-view",Fulfillment Modernization,"Use this issue for weekly progress, next milestone, risk, and leadership ask."
+CVP blocker requiring leadership decision,Task,Blocked,,2026-05-15,High,"weekly-update,blocker,leadership-ask",CVP,"Describe the blocker, business impact, decision needed, and owner."
+TLVOD pipeline milestone,Task,In Progress,,2026-05-22,Medium,weekly-update,TLVOD/Fulfillment Pipeline,"Track current progress and the next milestone for the weekly tracker."

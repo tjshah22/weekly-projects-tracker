@@ -1,0 +1,34 @@
+{
+  "base_url": "https://your-domain.atlassian.net",
+  "email_env": "JIRA_EMAIL",
+  "api_token_env": "JIRA_API_TOKEN",
+  "fields": [
+    "summary",
+    "status",
+    "assignee",
+    "priority",
+    "labels",
+    "components",
+    "fixVersions",
+    "duedate",
+    "updated",
+    "issuetype",
+    "customfield_10020",
+    "customfield_10014",
+    "customfield_10011",
+    "customfield_10016"
+  ],
+  "queries": [
+    {
+      "name": "Fulfillment Project Tracker - Active",
+      "jql": "project = FULTRACK AND statusCategory != Done ORDER BY priority DESC, duedate ASC, updated DESC",
+      "max_results": 100
+    },
+    {
+      "name": "Fulfillment Project Tracker - Recently Completed",
+      "jql": "project = FULTRACK AND statusCategory = Done AND resolved >= -14d ORDER BY resolved DESC",
+      "max_results": 100
+    }
+  ],
+  "boards": []
+}

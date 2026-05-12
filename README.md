@@ -1,17 +1,23 @@
 # Weekly Projects Tracker
 
-This is an app-first fulfillment tracker inspired by the LaunchGate layout: sidebar queues, leadership attention, searchable project rows, detail editing, business highlights, metrics, and Jira issue views.
+This is an app-first fulfillment tracker inspired by the LaunchGate layout: sidebar queues, leadership attention, searchable project rows, detail editing, business highlights, metrics, and Jira-connected project views.
 
-The PowerPoint deck is still the source input. The tracker itself is `index.html`, not an Excel workbook.
+The PowerPoint deck can be the source input, Jira can be the source input, or both can be combined. The tracker itself is `index.html`, not an Excel workbook.
 
-For quick sharing, serve this folder as a static site and share the HTTP link with anyone who should see it.
+For quick sharing, serve this folder as a static site and share the HTTP link with anyone who should see it. Access and sharing details are in [ACCESS_AND_SHARING.md](ACCESS_AND_SHARING.md).
+
+## Customizing For Another Team
+
+Most team-specific wording and options live in `config/tracker-config.js`: app title, labels, workstreams, statuses, leadership attention rules, metric card copy, and theme colors.
+
+For a step-by-step implementation checklist, start with [IMPLEMENTATION_STEPS.md](IMPLEMENTATION_STEPS.md). To make sure other people can view or update it, use [ACCESS_AND_SHARING.md](ACCESS_AND_SHARING.md). To duplicate this tracker specifically for the project management team, use [PROJECT_MANAGEMENT_TEAM_SETUP.md](PROJECT_MANAGEMENT_TEAM_SETUP.md). For safe follow-up changes, use [CODEX_CUSTOMIZATION_PROMPTS.md](CODEX_CUSTOMIZATION_PROMPTS.md).
 
 ## What It Creates
 
 - `index.html`: the interactive tracker app.
-- `data/tracker-data.js`: browser-ready tracker data generated from the deck.
+- `data/tracker-data.js`: browser-ready tracker data generated from the deck, Jira, or both.
 - `outputs/leadership_brief.md`: a short Markdown leadership brief.
-- `data/projects.csv`: extracted project rows from the deck.
+- `data/projects.csv`: extracted project rows from the deck and any Jira issues promoted with `--jira-as-projects`.
 - `data/blockers_and_risks.csv`: leadership attention rows.
 - `data/business_highlights.csv`: business context and volume/timing highlights.
 - `data/department_metrics.csv`: operating metrics from the department slides.
@@ -19,6 +25,8 @@ For quick sharing, serve this folder as a static site and share the HTTP link wi
 - `data/jira_raw.csv`: Jira rows when a config or CSV is supplied.
 
 ## Weekly Workflow
+
+### Deck Only
 
 1. Save the newest weekly deck somewhere accessible.
 2. Refresh the app data:
@@ -34,21 +42,39 @@ For quick sharing, serve this folder as a static site and share the HTTP link wi
 
 Manual edits are saved in browser local storage for the current reporting week.
 
+### Jira To Tracker
+
+Once the Jira project/board is set up, refresh the app from Jira:
+
+```bash
+python3 scripts/refresh_tracker.py --fetch-jira --jira-config config/jira.json --jira-as-projects
+```
+
+To combine the weekly deck with Jira, include both sources:
+
+```bash
+python3 scripts/refresh_tracker.py --deck "/path/to/weekly deck.pptx" --fetch-jira --jira-config config/jira.json --jira-as-projects
+```
+
+`--jira-as-projects` is the key flag: it funnels Jira issues into the main Projects list, Leadership Brief, blockers view, and Jira tab.
+
 ## Jira Setup
 
-The connector supports both JQL queries and Jira Software board pulls.
+The connector supports both JQL queries and Jira Software board pulls. For a dedicated Jira project, start with [JIRA_TRACKER_SETUP.md](JIRA_TRACKER_SETUP.md).
 
-1. Copy the config template:
+1. Copy the config template that fits your setup:
 
    ```bash
-   cp config/jira.example.json config/jira.json
+   cp config/jira.project-tracker.example.json config/jira.json
    ```
+
+   Use `config/jira.example.json` instead if you want to connect several existing Jira projects or boards.
 
 2. Edit `config/jira.json`:
 
    - Set `base_url` to your Jira Cloud site.
-   - Replace project keys in the sample JQL.
-   - Replace the example `board_id` with your board IDs, or remove the `boards` section.
+   - Replace the project key in the sample JQL.
+   - Add board IDs only if you want board pulls in addition to JQL.
    - Keep credentials out of the file.
 
 3. Set credentials in your shell:
@@ -61,7 +87,7 @@ The connector supports both JQL queries and Jira Software board pulls.
 4. Refresh with Jira:
 
    ```bash
-   python3 scripts/refresh_tracker.py --deck "/path/to/weekly deck.pptx" --fetch-jira --jira-config config/jira.json
+   python3 scripts/refresh_tracker.py --deck "/path/to/weekly deck.pptx" --fetch-jira --jira-config config/jira.json --jira-as-projects
    ```
 
 The script uses Atlassian's current Jira Cloud JQL endpoint, `/rest/api/3/search/jql`, including `nextPageToken` pagination. For board pulls, it uses Jira Software's `/rest/agile/1.0/board/{boardId}/issue` endpoint.

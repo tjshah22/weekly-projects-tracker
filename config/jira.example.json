@@ -5,7 +5,6 @@
   "fields": [
     "summary",
     "status",
-    "statusCategory",
     "assignee",
     "priority",
     "labels",
