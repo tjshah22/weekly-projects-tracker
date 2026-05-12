@@ -20,13 +20,13 @@
   ],
   "queries": [
     {
-      "name": "Fulfillment Project Tracker - Active",
-      "jql": "project = FULTRACK AND statusCategory != Done ORDER BY priority DESC, duedate ASC, updated DESC",
+      "name": "F2 and F3 Jira Boards - Active",
+      "jql": "project in (F2, F3) AND statusCategory != Done ORDER BY priority DESC, duedate ASC, updated DESC",
       "max_results": 100
     },
     {
-      "name": "Fulfillment Project Tracker - Recently Completed",
-      "jql": "project = FULTRACK AND statusCategory = Done AND resolved >= -14d ORDER BY resolved DESC",
+      "name": "F2 and F3 Jira Boards - Recently Completed",
+      "jql": "project in (F2, F3) AND statusCategory = Done AND resolved >= -14d ORDER BY resolved DESC",
       "max_results": 100
     }
   ],

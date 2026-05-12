@@ -5,6 +5,7 @@
 window.TRACKER_CONFIG = {
   documentTitle: "Fulfillment Weekly Tracker",
   storageNamespace: "fulfillment-weekly-tracker",
+  sourceName: "F2 and F3 Jira Boards",
 
   labels: {
     sidebarEyebrow: "Leadership Operations",
@@ -22,9 +23,11 @@ window.TRACKER_CONFIG = {
     attentionTitle: "Attention Queue",
     searchLabel: "Search",
     searchPlaceholder: "Project, owner, workstream, risk",
+    weekFilterLabel: "Reporting week",
     workstreamFilterLabel: "Workstream",
     statusFilterLabel: "Status",
     leadershipOnlyLabel: "Leadership only",
+    carryForwardButton: "Carry forward",
     dialogEyebrow: "Weekly Intake",
     dialogTitle: "New project update",
     projectLabel: "Project",

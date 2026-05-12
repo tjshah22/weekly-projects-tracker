@@ -20,20 +20,26 @@
   ],
   "queries": [
     {
-      "name": "Fulfillment active work",
-      "jql": "project in (TLVOD, FP, CVP, MB) AND statusCategory != Done ORDER BY priority DESC, updated DESC",
+      "name": "F2 and F3 active work",
+      "jql": "project in (F2, F3) AND statusCategory != Done ORDER BY priority DESC, updated DESC",
       "max_results": 100
     },
     {
-      "name": "Fulfillment recently completed",
-      "jql": "project in (TLVOD, FP, CVP, MB) AND statusCategory = Done AND resolved >= -14d ORDER BY resolved DESC",
+      "name": "F2 and F3 recently completed",
+      "jql": "project in (F2, F3) AND statusCategory = Done AND resolved >= -14d ORDER BY resolved DESC",
       "max_results": 100
     }
   ],
   "boards": [
     {
-      "name": "Example Fulfillment Board",
+      "name": "F2 Jira Board",
       "board_id": 12345,
+      "jql": "updated >= -14d OR statusCategory != Done",
+      "max_results": 100
+    },
+    {
+      "name": "F3 Jira Board",
+      "board_id": 67890,
       "jql": "updated >= -14d OR statusCategory != Done",
       "max_results": 100
     }

@@ -28,9 +28,11 @@ const defaultConfig = {
     attentionTitle: "Attention Queue",
     searchLabel: "Search",
     searchPlaceholder: "Project, owner, workstream, risk",
+    weekFilterLabel: "Reporting week",
     workstreamFilterLabel: "Workstream",
     statusFilterLabel: "Status",
     leadershipOnlyLabel: "Leadership only",
+    carryForwardButton: "Carry forward",
     dialogEyebrow: "Weekly Intake",
     dialogTitle: "New project update",
     projectLabel: "Project",
@@ -59,6 +61,7 @@ const defaultConfig = {
     metrics: { nav: "Metrics", eyebrow: "Operations", title: "Metrics" },
     jira: { nav: "Jira", eyebrow: "Delivery", title: "Jira" },
   },
+  sourceName: "F2 and F3 Jira Boards",
   statuses: ["Completed", "On Track", "Monitoring", "At Risk", "Blocked", "Upcoming"],
   askOptions: ["No", "Yes", "Review"],
   completedStatuses: ["Completed"],
@@ -82,6 +85,10 @@ const defaultConfig = {
 };
 
 const trackerConfig = mergeConfig(defaultConfig, window.TRACKER_CONFIG || {});
+const currentWeekKey = getWeekStartKey(new Date());
+const sourceName = trackerConfig.sourceName || "F2 and F3 Jira Boards";
+const legacyStorageKey = `${trackerConfig.storageNamespace}:${trackerData.reportingWeek || "current"}`;
+const historyStorageKey = `${trackerConfig.storageNamespace}:weekly-history`;
 
 const projectHeaders = [
   "Reporting Week",
@@ -105,16 +112,16 @@ const projectHeaders = [
 
 const defaultStatuses = trackerConfig.statuses;
 const askOptions = trackerConfig.askOptions;
-const storageKey = `${trackerConfig.storageNamespace}:${trackerData.reportingWeek || "current"}`;
-
 const baseProjects = (trackerData.projects || []).map((row, index) => normalizeProject(row, index, "deck"));
 const highlights = (trackerData.highlights || []).map((row, index) => normalizeHighlight(row, index));
 const metrics = (trackerData.metrics || []).map((row, index) => normalizeMetric(row, index));
 const jiraRows = (trackerData.jiraRows || []).filter((row) => row["Issue Key"]).map((row, index) => normalizeJira(row, index));
 
 const localState = loadLocalState();
+initializeWeeklyHistory();
 const state = {
   activeView: localState.activeView || "projects",
+  selectedWeek: currentWeekKey,
   selectedProjectId: localState.selectedProjectId || "",
   selectedHighlightId: localState.selectedHighlightId || (highlights[0] && highlights[0].id) || "",
   selectedMetricId: localState.selectedMetricId || (metrics[0] && metrics[0].id) || "",
@@ -139,6 +146,7 @@ const elements = {
   attentionEyebrow: document.getElementById("attentionEyebrow"),
   attentionTitle: document.getElementById("attentionTitle"),
   searchLabel: document.getElementById("searchLabel"),
+  weekFilterLabel: document.getElementById("weekFilterLabel"),
   workstreamFilterLabel: document.getElementById("workstreamFilterLabel"),
   statusFilterLabel: document.getElementById("statusFilterLabel"),
   leadershipOnlyLabel: document.getElementById("leadershipOnlyLabel"),
@@ -161,9 +169,11 @@ const elements = {
   attentionList: document.getElementById("attentionList"),
   attentionCount: document.getElementById("attentionCount"),
   searchInput: document.getElementById("searchInput"),
+  weekSelect: document.getElementById("weekSelect"),
   workstreamFilter: document.getElementById("workstreamFilter"),
   statusFilter: document.getElementById("statusFilter"),
   attentionOnly: document.getElementById("attentionOnly"),
+  carryForward: document.getElementById("carryForward"),
   primaryList: document.getElementById("primaryList"),
   detailPane: document.getElementById("detailPane"),
   mainEyebrow: document.getElementById("mainEyebrow"),
@@ -185,8 +195,6 @@ init();
 
 function init() {
   applyConfig();
-  elements.sidebarWeek.textContent = trackerData.reportingWeek || "Not set";
-  elements.sidebarDeck.textContent = trackerData.deckName || "No deck loaded";
   elements.openBrief.href = `./${trackerData.briefPath || "outputs/leadership_brief.md"}`;
   ensureSelections();
   populateFilters();
@@ -212,9 +220,11 @@ function applyConfig() {
   setText(elements.attentionEyebrow, labels.attentionEyebrow);
   setText(elements.attentionTitle, labels.attentionTitle);
   setText(elements.searchLabel, labels.searchLabel);
+  setText(elements.weekFilterLabel, labels.weekFilterLabel);
   setText(elements.workstreamFilterLabel, labels.workstreamFilterLabel);
   setText(elements.statusFilterLabel, labels.statusFilterLabel);
   setText(elements.leadershipOnlyLabel, labels.leadershipOnlyLabel);
+  setText(elements.carryForward, labels.carryForwardButton);
   setText(elements.dialogEyebrow, labels.dialogEyebrow);
   setText(elements.dialogTitle, labels.dialogTitle);
   setText(elements.dialogWorkstreamLabel, labels.workstreamFilterLabel);
@@ -266,6 +276,16 @@ function bindEvents() {
     renderPrimaryList();
   });
 
+  elements.weekSelect.addEventListener("change", (event) => {
+    state.selectedWeek = event.target.value || currentWeekKey;
+    localState.selectedWeek = state.selectedWeek;
+    state.selectedProjectId = "";
+    localState.selectedProjectId = "";
+    persistLocalState();
+    populateFilters();
+    render();
+  });
+
   elements.workstreamFilter.addEventListener("change", (event) => {
     state.workstreamFilter = event.target.value;
     renderPrimaryList();
@@ -298,10 +318,10 @@ function bindEvents() {
     const now = new Date().toISOString().slice(0, 10);
     const manualProject = {
       id: `manual-${Date.now()}`,
-      reportingWeek: trackerData.reportingWeek || now,
+      reportingWeek: state.selectedWeek || currentWeekKey,
       workstream: String(formData.get("workstream") || ""),
       project: String(formData.get("project") || "").trim(),
-      status: String(formData.get("status") || "On Track"),
+      status: String(formData.get("status") || defaultStatus()),
       owner: String(formData.get("owner") || "").trim(),
       targetDate: String(formData.get("targetDate") || "").trim(),
       update: String(formData.get("update") || "").trim(),
@@ -313,12 +333,12 @@ function bindEvents() {
       jiraKey: String(formData.get("jiraKey") || "").trim(),
       jiraUrl: "",
       sourceSlide: "Manual",
-      sourceDeck: "",
+      sourceDeck: sourceName,
       lastUpdated: now,
       sourceType: "manual",
     };
 
-    localState.manualProjects.unshift(manualProject);
+    getWeekState(state.selectedWeek).projects.unshift(manualProject);
     state.selectedProjectId = manualProject.id;
     state.activeView = "projects";
     localState.selectedProjectId = manualProject.id;
@@ -330,9 +350,12 @@ function bindEvents() {
   });
 
   elements.exportCsv.addEventListener("click", exportProjectsCsv);
+  elements.carryForward.addEventListener("click", carryForwardProjects);
 }
 
 function populateFilters() {
+  populateWeekSelector();
+
   const workstreams = getWorkstreams();
   elements.workstreamFilter.innerHTML = [
     `<option value="all">All workstreams</option>`,
@@ -352,14 +375,29 @@ function populateFilters() {
   elements.newAsk.innerHTML = askOptions.map((item) => `<option value="${escapeAttribute(item)}">${escapeHtml(item)}</option>`).join("");
 }
 
+function populateWeekSelector() {
+  const weeks = getWeekKeys();
+  elements.weekSelect.innerHTML = weeks.map((weekKey) => (
+    `<option value="${escapeAttribute(weekKey)}">${escapeHtml(formatWeekLabel(weekKey))}</option>`
+  )).join("");
+  elements.weekSelect.value = weeks.includes(state.selectedWeek) ? state.selectedWeek : currentWeekKey;
+  elements.carryForward.disabled = !getCarryForwardSourceWeek();
+}
+
 function render() {
   ensureSelections();
+  renderWeekMeta();
   renderNav();
   renderDashboardMetrics();
   renderAttentionQueue();
   renderSidebarSummary();
   renderPrimaryList();
   renderDetailPane();
+}
+
+function renderWeekMeta() {
+  elements.sidebarWeek.textContent = formatWeekLabel(state.selectedWeek || currentWeekKey);
+  elements.sidebarDeck.textContent = sourceName;
 }
 
 function renderNav() {
@@ -602,7 +640,7 @@ function renderProjectDetail() {
         ${metaRow("Owner", project.owner || "Unassigned")}
         ${metaRow("Target", project.targetDate || "Not set")}
         ${metaRow("Ask", project.ask || "No")}
-        ${metaRow("Source", project.sourceSlide ? `Slide ${project.sourceSlide}` : project.sourceType)}
+        ${metaRow("Source", project.sourceDeck || sourceName)}
         ${project.jiraKey ? metaRow("Jira", project.jiraKey) : ""}
         ${project.nextMilestone ? metaRow("Milestone", project.nextMilestone) : ""}
       </div>
@@ -647,7 +685,7 @@ function renderProjectDetail() {
         </label>
         <div class="detail-actions">
           ${project.jiraUrl ? `<a class="button secondary" href="${escapeAttribute(project.jiraUrl)}">Open Jira</a>` : ""}
-          ${project.sourceType === "manual" ? `<button class="button danger" id="deleteManualProject" type="button">Delete</button>` : ""}
+          ${["manual", "carried"].includes(project.sourceType) ? `<button class="button danger" id="deleteManualProject" type="button">Delete</button>` : ""}
           <button class="button primary" type="submit">Save Detail</button>
         </div>
       </form>
@@ -670,7 +708,8 @@ function renderProjectDetail() {
   const deleteButton = document.getElementById("deleteManualProject");
   if (deleteButton) {
     deleteButton.addEventListener("click", () => {
-      localState.manualProjects = localState.manualProjects.filter((item) => item.id !== project.id);
+      const weekState = getWeekState(state.selectedWeek);
+      weekState.projects = weekState.projects.filter((item) => item.id !== project.id);
       state.selectedProjectId = "";
       localState.selectedProjectId = "";
       persistLocalState();
@@ -701,7 +740,7 @@ function renderHighlightDetail() {
       </div>
       <div class="detail-grid">
         ${metaRow("Impact", highlight.impact || "Not recorded")}
-        ${metaRow("Week", highlight.reportingWeek || trackerData.reportingWeek || "Not set")}
+        ${metaRow("Week", formatWeekLabel(state.selectedWeek || currentWeekKey))}
         ${metaRow("Source", highlight.sourceSlide ? `Slide ${highlight.sourceSlide}` : "Deck")}
       </div>
       <div class="detail-section">
@@ -774,21 +813,16 @@ function renderJiraDetail() {
 }
 
 function updateProject(id, patch) {
-  const baseProject = baseProjects.find((project) => project.id === id);
-  if (baseProject) {
-    localState.edits[id] = { ...(localState.edits[id] || {}), ...patch };
-  } else {
-    localState.manualProjects = localState.manualProjects.map((project) => (
-      project.id === id ? { ...project, ...patch } : project
-    ));
-  }
+  const weekState = getWeekState(state.selectedWeek);
+  weekState.projects = weekState.projects.map((project) => (
+    project.id === id ? { ...project, ...patch } : project
+  ));
   persistLocalState();
   render();
 }
 
 function getProjects() {
-  const editedBase = baseProjects.map((project) => ({ ...project, ...(localState.edits[project.id] || {}) }));
-  return [...localState.manualProjects, ...editedBase];
+  return getWeekState(state.selectedWeek).projects;
 }
 
 function getFilteredProjects() {
@@ -834,11 +868,114 @@ function ensureSelections() {
   if (!state.selectedJiraId && jiraRows[0]) state.selectedJiraId = jiraRows[0].id;
 }
 
+function initializeWeeklyHistory() {
+  localState.weeks = localState.weeks || {};
+  const dataWeekKey = normalizeWeekKey(trackerData.reportingWeek);
+
+  if (dataWeekKey && dataWeekKey !== currentWeekKey) {
+    mergeSourceProjectsIntoWeek(dataWeekKey);
+  }
+
+  mergeSourceProjectsIntoWeek(currentWeekKey);
+  saveLocalState();
+}
+
+function mergeSourceProjectsIntoWeek(weekKey) {
+  const weekState = getWeekState(weekKey);
+  const existingIds = new Set(weekState.projects.map((project) => project.id));
+  baseProjects.forEach((project) => {
+    if (!existingIds.has(project.id)) {
+      weekState.projects.push(asWeekProject(project, weekKey, "source"));
+      existingIds.add(project.id);
+    }
+  });
+}
+
+function getWeekState(weekKey = currentWeekKey) {
+  const key = weekKey || currentWeekKey;
+  localState.weeks[key] = localState.weeks[key] || { projects: [] };
+  localState.weeks[key].projects = Array.isArray(localState.weeks[key].projects) ? localState.weeks[key].projects : [];
+  return localState.weeks[key];
+}
+
+function getWeekKeys() {
+  return Object.keys(localState.weeks || {})
+    .filter(Boolean)
+    .sort((a, b) => b.localeCompare(a));
+}
+
+function carryForwardProjects() {
+  const sourceWeek = getCarryForwardSourceWeek();
+  if (!sourceWeek) {
+    window.alert("No previous week is available to carry forward.");
+    return;
+  }
+
+  const sourceProjects = getWeekState(sourceWeek).projects.filter((project) => !isCompletedProject(project));
+  if (!sourceProjects.length) {
+    window.alert(`No active projects found for ${formatWeekLabel(sourceWeek)}.`);
+    return;
+  }
+
+  const currentWeekState = getWeekState(currentWeekKey);
+  const existingKeys = new Set(currentWeekState.projects.map(projectCarryKey));
+  const carried = sourceProjects
+    .filter((project) => !existingKeys.has(projectCarryKey(project)))
+    .map((project, index) => ({
+      ...project,
+      id: `carry-${currentWeekKey}-${slug(project.jiraKey || project.project)}-${index}`,
+      reportingWeek: currentWeekKey,
+      sourceSlide: "Carry Forward",
+      sourceDeck: sourceName,
+      sourceType: "carried",
+      lastUpdated: todayKey(),
+    }));
+
+  if (!carried.length) {
+    window.alert("Those active projects are already in the current week.");
+    return;
+  }
+
+  currentWeekState.projects.unshift(...carried);
+  state.selectedWeek = currentWeekKey;
+  localState.selectedWeek = currentWeekKey;
+  state.selectedProjectId = carried[0].id;
+  localState.selectedProjectId = carried[0].id;
+  persistLocalState();
+  populateFilters();
+  render();
+  window.alert(`Carried ${carried.length} active project${carried.length === 1 ? "" : "s"} into ${formatWeekLabel(currentWeekKey)}.`);
+}
+
+function getCarryForwardSourceWeek() {
+  const previousWeeks = getWeekKeys().filter((weekKey) => weekKey < currentWeekKey);
+  if (!previousWeeks.length) return "";
+  if (state.selectedWeek && state.selectedWeek !== currentWeekKey) return state.selectedWeek;
+  return previousWeeks[0];
+}
+
+function projectCarryKey(project) {
+  return String(project.jiraKey || project.project || project.id || "").trim().toLowerCase();
+}
+
+function isCompletedProject(project) {
+  return (trackerConfig.completedStatuses || []).includes(project.status);
+}
+
+function asWeekProject(project, weekKey, sourceType = project.sourceType) {
+  return {
+    ...project,
+    reportingWeek: weekKey,
+    sourceDeck: sourceName,
+    sourceType,
+  };
+}
+
 function normalizeProject(row, index, sourceType) {
   const projectName = row.Project || "Untitled project";
   return {
     id: row.id || `${sourceType}-${slug(projectName)}-${row["Source Slide"] || index}-${index}`,
-    reportingWeek: row["Reporting Week"] || trackerData.reportingWeek || "",
+    reportingWeek: row["Reporting Week"] || currentWeekKey,
     workstream: row.Workstream || trackerConfig.defaultWorkstream || "Business",
     project: projectName,
     status: row.Status || defaultStatus(),
@@ -853,8 +990,8 @@ function normalizeProject(row, index, sourceType) {
     jiraKey: row["Jira Key/Epic"] || "",
     jiraUrl: row["Jira URL"] || "",
     sourceSlide: row["Source Slide"] || "",
-    sourceDeck: row["Source Deck"] || trackerData.deckName || "",
-    lastUpdated: row["Last Updated"] || trackerData.reportingWeek || "",
+    sourceDeck: sourceName,
+    lastUpdated: row["Last Updated"] || currentWeekKey,
     sourceType,
   };
 }
@@ -950,7 +1087,7 @@ function exportProjectsCsv() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `weekly-projects-${trackerData.reportingWeek || "updated"}.csv`;
+  link.download = `weekly-projects-${state.selectedWeek || currentWeekKey}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -962,18 +1099,43 @@ function csvCell(value) {
 
 function loadLocalState() {
   try {
-    const stored = JSON.parse(localStorage.getItem(storageKey) || "{}");
-    return {
-      edits: stored.edits || {},
-      manualProjects: stored.manualProjects || [],
+    const stored = JSON.parse(localStorage.getItem(historyStorageKey) || "{}");
+    const legacy = JSON.parse(localStorage.getItem(legacyStorageKey) || "{}");
+    const local = {
+      weeks: stored.weeks || {},
       selectedProjectId: stored.selectedProjectId || "",
       selectedHighlightId: stored.selectedHighlightId || "",
       selectedMetricId: stored.selectedMetricId || "",
       selectedJiraId: stored.selectedJiraId || "",
       activeView: stored.activeView || "projects",
+      selectedWeek: currentWeekKey,
+      migratedLegacy: stored.migratedLegacy || false,
     };
+
+    if (!local.migratedLegacy && ((legacy.manualProjects || []).length || Object.keys(legacy.edits || {}).length)) {
+      const legacyWeek = normalizeWeekKey(trackerData.reportingWeek) || currentWeekKey;
+      const editedBase = baseProjects.map((project) => ({ ...project, ...((legacy.edits || {})[project.id] || {}) }));
+      local.weeks[legacyWeek] = {
+        projects: [
+          ...(legacy.manualProjects || []).map((project) => asWeekProject(project, legacyWeek, project.sourceType || "manual")),
+          ...editedBase.map((project) => asWeekProject(project, legacyWeek, project.sourceType || "source")),
+        ],
+      };
+      local.migratedLegacy = true;
+    }
+
+    return local;
   } catch (error) {
-    return { edits: {}, manualProjects: [], activeView: "projects" };
+    return {
+      weeks: {},
+      selectedProjectId: "",
+      selectedHighlightId: "",
+      selectedMetricId: "",
+      selectedJiraId: "",
+      activeView: "projects",
+      selectedWeek: currentWeekKey,
+      migratedLegacy: false,
+    };
   }
 }
 
@@ -983,7 +1145,12 @@ function persistLocalState() {
   localState.selectedMetricId = state.selectedMetricId;
   localState.selectedJiraId = state.selectedJiraId;
   localState.activeView = state.activeView;
-  localStorage.setItem(storageKey, JSON.stringify(localState));
+  localState.selectedWeek = state.selectedWeek;
+  saveLocalState();
+}
+
+function saveLocalState() {
+  localStorage.setItem(historyStorageKey, JSON.stringify(localState));
 }
 
 function slug(value) {
@@ -1049,4 +1216,49 @@ function formatMetricNote(template, values) {
   return String(template || "")
     .replace(/\{onTrack\}/g, String(values.onTrack || 0))
     .replace(/\{metrics\}/g, String(values.metrics || 0));
+}
+
+function todayKey() {
+  return dateKey(new Date());
+}
+
+function getWeekStartKey(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return todayKey();
+  date.setHours(0, 0, 0, 0);
+  const day = date.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + mondayOffset);
+  return dateKey(date);
+}
+
+function normalizeWeekKey(value) {
+  if (!value) return "";
+  const text = String(value).trim();
+  const dateMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateMatch) return getWeekStartKey(new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3])));
+
+  const shortDateMatch = text.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if (shortDateMatch) {
+    const yearText = shortDateMatch[3] || String(new Date().getFullYear());
+    const year = yearText.length === 2 ? Number(`20${yearText}`) : Number(yearText);
+    return getWeekStartKey(new Date(year, Number(shortDateMatch[1]) - 1, Number(shortDateMatch[2])));
+  }
+
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? "" : getWeekStartKey(parsed);
+}
+
+function dateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatWeekLabel(weekKey) {
+  const parsed = normalizeWeekKey(weekKey) || currentWeekKey;
+  const [year, month, day] = parsed.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return `Week of ${date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
 }

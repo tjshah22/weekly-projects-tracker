@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fulfillment Weekly Tracker</title>
-    <link rel="stylesheet" href="./styles.css?v=20260512-versant-inspired" />
+    <link rel="stylesheet" href="./styles.css?v=20260512-weekly-history" />
   </head>
   <body>
     <div class="accent-strip" aria-hidden="true"></div>
@@ -80,6 +80,10 @@
             <input id="searchInput" type="search" placeholder="Project, owner, workstream, risk" />
           </div>
           <label class="filter">
+            <span id="weekFilterLabel">Reporting week</span>
+            <select id="weekSelect"></select>
+          </label>
+          <label class="filter">
             <span id="workstreamFilterLabel">Workstream</span>
             <select id="workstreamFilter"></select>
           </label>
@@ -91,6 +95,7 @@
             <input id="attentionOnly" type="checkbox" />
             <span id="leadershipOnlyLabel">Leadership only</span>
           </label>
+          <button id="carryForward" class="button secondary carry-forward" type="button">Carry forward</button>
         </section>
 
         <section class="content-grid">
@@ -187,8 +192,8 @@
       </form>
     </dialog>
 
-    <script src="./config/tracker-config.js?v=20260512-versant-inspired"></script>
-    <script src="./data/tracker-data.js?v=20260512-versant-inspired"></script>
-    <script src="./app.js?v=20260512-versant-inspired"></script>
+    <script src="./config/tracker-config.js?v=20260512-weekly-history"></script>
+    <script src="./data/tracker-data.js?v=20260512-weekly-history"></script>
+    <script src="./app.js?v=20260512-weekly-history"></script>
   </body>
 </html>

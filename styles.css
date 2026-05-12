@@ -491,12 +491,16 @@ a {
 
 .controls-panel {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 220px 180px max-content;
+  grid-template-columns: minmax(220px, 1fr) 180px 220px 180px max-content max-content;
   gap: 12px;
   align-items: end;
   margin-top: 18px;
   padding: 18px;
   box-shadow: var(--shadow);
+}
+
+.carry-forward {
+  align-self: end;
 }
 
 .search-field,
